@@ -1,0 +1,47 @@
+services:
+  vanilla:
+    container_name: mc_vanilla
+    image: itzg/minecraft-server
+    ports:
+      - 25565:25565
+    tty: true         # ターミナルの割り当て（`-t`オプション）
+    stdin_open: true  # 標準入出力ストリーム（`-i`オプション）
+    environment:
+      ENABLE_ROLLING_LOGS: "TRUE"
+      JVM_OPTS: "-XX:MaxRAMPercentage=75"
+      TYPE: "VANILLA"
+      EULA: "TRUE"
+      VERSION: "1.21"
+      MOTD: "The World of Vanilla Server"
+      MAX_PLAYERS: 5
+      MAX_WORLD_SIZE: 10000
+      ENABLE_COMMAND_BLOCK: "TRUE"
+      SNOOPER_ENABLED: "FALSE"
+      VIEW_DISTANCE: 12
+      MODE: "SURVIVAL"
+      PVP: "FALSE"
+      STOP_SERVER_ANNOUNCE_DELAY: 20
+      GUI: "FALSE"
+    volumes:
+      - ./vanilla:/data
+      - /etc/timezone:/etc/timezone:ro
+    restart: unless-stopped
+  vanilla-backups:
+    container_name: mc_vanilla_backups
+    image: itzg/mc-backup
+    environment:
+      BACKUP_NAME: "vanilla"
+      BACKUP_INTERVAL: "12h"
+      PRUNE_BACKUPS_DAYS: 5
+      PAUSE_IF_NO_PLAYERS: "true"
+      PLAYERS_ONLINE_CHECK_INTERVAL: "5m"
+      INITIAL_DELAY: "2m"
+      RCON_HOST: vanilla
+    depends_on:
+      - vanilla
+    volumes:
+      - ./vanilla:/data:ro
+      - ./backups:/backups
+      - /etc/timezone:/etc/timezone:ro
+    restart: unless-stopped
+    network_mode: "service:vanilla"
